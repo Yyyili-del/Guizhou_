@@ -36,4 +36,53 @@ public class AttractionService {
     public List<Attraction> getAttractionsByLocation(String location) {
         return attractionRepository.findByLocationContaining(location);
     }
+
+    public List<Attraction> searchAttractions(String keyword) {
+        return attractionRepository.findByNameContaining(keyword);
+    }
+
+    public List<Attraction> getAttractionsByCategory(String category) {
+        return attractionRepository.findByCategory(category);
+    }
+
+    public List<String> getAllCategories() {
+        return attractionRepository.findAllCategories();
+    }
+
+    @Transactional
+    public Attraction createAttraction(Attraction attraction) {
+        return attractionRepository.save(attraction);
+    }
+
+    @Transactional
+    public Attraction updateAttraction(Long id, Attraction attraction) {
+        Optional<Attraction> opt = attractionRepository.findById(id);
+        if (opt.isPresent()) {
+            Attraction existing = opt.get();
+            existing.setName(attraction.getName());
+            existing.setLocation(attraction.getLocation());
+            existing.setCategory(attraction.getCategory());
+            existing.setDescription(attraction.getDescription());
+            existing.setImageUrl(attraction.getImageUrl());
+            existing.setRating(attraction.getRating());
+            existing.setTicketPrice(attraction.getTicketPrice());
+            existing.setOpeningHours(attraction.getOpeningHours());
+            existing.setBestSeason(attraction.getBestSeason());
+            return attractionRepository.save(existing);
+        }
+        return null;
+    }
+
+    @Transactional
+    public boolean deleteAttraction(Long id) {
+        if (attractionRepository.existsById(id)) {
+            attractionRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    public List<Attraction> getHighRatingAttractions(Double minRating) {
+        return attractionRepository.findByRatingGreaterThanEqual(minRating);
+    }
 }

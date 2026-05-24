@@ -34,12 +34,27 @@ public class Attraction {
 
     private Integer viewCount;
 
+    private Double ticketPrice;
+
+    private String openingHours;
+
+    private String bestSeason;
+
     private LocalDateTime createTime;
+
+    private LocalDateTime updateTime;
 
     @PrePersist
     protected void onCreate() {
         createTime = LocalDateTime.now();
+        updateTime = LocalDateTime.now();
         if (viewCount == null) viewCount = 0;
         if (rating == null) rating = 0.0;
+        if (ticketPrice == null) ticketPrice = 0.0;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updateTime = LocalDateTime.now();
     }
 }

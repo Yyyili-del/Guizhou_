@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理景点 - 多彩贵州</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .form-section { background: white; border-radius: 10px; padding: 30px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-section h2 { color: #333; margin-bottom: 20px; border-left: 4px solid #667eea; padding-left: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #333; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #667eea; outline: none; }
+        .btn { padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #764ba2; }
+        .btn-danger { background: #f44336; }
+        .btn-danger:hover { background: #d32f2f; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .action-btns { display: flex; gap: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>景点管理系统</h1>
+        <p>添加、编辑和管理旅游景点信息</p>
+    </div>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>添加新景点</h2>
+            <form id="addForm">
+                <div class="form-group">
+                    <label>景点名称 *</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label>所在地区 *</label>
+                    <input type="text" id="location" required>
+                </div>
+                <div class="form-group">
+                    <label>景点类别 *</label>
+                    <select id="category" required>
+                        <option value="自然风光">自然风光</option>
+                        <option value="民族文化">民族文化</option>
+                        <option value="历史文化">历史文化</option>
+                        <option value="科技景观">科技景观</option>
+                        <option value="休闲度假">休闲度假</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>景点描述</label>
+                    <textarea id="description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>图片URL</label>
+                    <input type="text" id="imageUrl">
+                </div>
+                <div class="form-group">
+                    <label>评分 (0-5)</label>
+                    <input type="number" id="rating" min="0" max="5" step="0.1" value="4.0">
+                </div>
+                <div class="form-group">
+                    <label>门票价格 (元)</label>
+                    <input type="number" id="ticketPrice" min="0" step="0.01" value="0">
+                </div>
+                <div class="form-group">
+                    <label>开放时间</label>
+                    <input type="text" id="openingHours" placeholder="如：08:00-18:00">
+                </div>
+                <div class="form-group">
+                    <label>最佳季节</label>
+                    <input type="text" id="bestSeason" placeholder="如：四季皆宜、春夏秋">
+                </div>
+                <button type="submit" class="btn">添加景点</button>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h2>景点列表</h2>
+            <div id="attractionsList">
+                <p>加载中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('addForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('name').value,
+                location: document.getElementById('location').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                imageUrl: document.getElementById('imageUrl').value,
+                rating: parseFloat(document.getElementById('rating').value),
+                ticketPrice: parseFloat(document.getElementById('ticketPrice').value),
+                openingHours: document.getElementById('openingHours').value,
+                bestSeason: document.getElementById('bestSeason').value
+            };
+
+            fetch('/api/attractions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                alert('添加成功！');
+                this.reset();
+                loadAttractions();
+            })
+            .catch(error => {
+                alert('添加失败：' + error);
+            });
+        });
+
+        function loadAttractions() {
+            fetch('/api/attractions')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '<table><thead><tr><th>ID</th><th>名称</th><th>地区</th><th>类别</th><th>评分</th><th>操作</th></tr></thead><tbody>';
+                    data.forEach(item => {
+                        html += '<tr>' +
+                            '<td>' + item.id + '</td>' +
+                            '<td>' + item.name + '</td>' +
+                            '<td>' + item.location + '</td>' +
+                            '<td>' + item.category + '</td>' +
+                            '<td>' + item.rating + '</td>' +
+                            '<td class="action-btns">' +
+                            '<button class="btn btn-danger" onclick="deleteAttraction(' + item.id + ')">删除</button>' +
+                            '</td></tr>';
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('attractionsList').innerHTML = html;
+                });
+        }
+
+        function deleteAttraction(id) {
+            if (confirm('确定要删除这个景点吗？')) {
+                fetch('/api/attractions/' + id, { method: 'DELETE' })
+                    .then(() => {
+                        alert('删除成功！');
+                        loadAttractions();
+                    })
+                    .catch(error => {
+                        alert('删除失败：' + error);
+                    });
+            }
+        }
+
+        loadAttractions();
+    </script>
+</body>
+</html>
